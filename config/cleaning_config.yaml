@@ -1,0 +1,36 @@
+# 时间列配置
+timestamp:
+  column_name: "timestamp"
+  format: "%Y-%m-%d %H:%M:%S"  # 根据你的实际格式调整
+  timezone: "Asia/Shanghai"
+
+# 目标变量
+target:
+  column_name: "value"
+  
+# 采样频率
+frequency:
+  expected: "1H"  # 1小时，可选: "1D"(日), "1T"(分钟), "1W"(周)
+  
+# 缺失值处理
+missing_values:
+  strategy: "interpolate"  # 可选: ffill, bfill, interpolate, drop, mean
+  interpolation_method: "time"  # 可选: linear, time, polynomial, spline
+  max_gap: 3  # 最大允许连续缺失数
+  
+# 异常值检测
+outliers:
+  method: "iqr"  # 可选: iqr, zscore, isolation_forest, rolling_zscore
+  threshold: 1.5  # IQR倍数或Z-score阈值
+  window_size: 24  # 滚动窗口大小(用于rolling_zscore)
+  action: "clip"  # 可选: remove, clip, interpolate, flag
+  
+# 重复值处理
+duplicates:
+  keep: "first"  # 可选: first, last, mean
+  
+# 平滑处理
+smoothing:
+  enabled: false
+  method: "moving_average"  # 可选: moving_average, ewm, savgol
+  window: 7

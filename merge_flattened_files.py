@@ -70,7 +70,7 @@ def load_file(file_path: Path) -> Optional[pd.DataFrame]:
 
 def merge_flattened_files(
     input_dir: str = "横向展开结果",
-    output_file: str = "合并后的数据.xlsx",
+    output_file: str = "合并后的数据.csv",
     handle_duplicates: str = "first"
 ):
     """
@@ -258,40 +258,35 @@ def merge_flattened_files(
     logger.info("=" * 80)
     logger.info(f"最终数据: {len(merged_df):,} 行, {len(merged_df.columns):,} 列")
     
-    try:
+    # 确保输出文件是CSV格式
+    output_path = Path(output_file)
+    if output_path.suffix.lower() not in ['.csv']:
+        output_file = str(output_path.with_suffix('.csv'))
         output_path = Path(output_file)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        # 如果文件太大，尝试分块保存或使用CSV
-        if len(merged_df) > 1000000:  # 超过100万行
-            logger.warning(f"数据量较大，使用CSV格式保存")
-            csv_file = output_file.replace('.xlsx', '.csv')
-            merged_df.to_csv(csv_file, index=False, encoding='utf-8-sig')
-            logger.info(f"✅ 成功保存为CSV格式: {csv_file}")
-        else:
-            merged_df.to_excel(output_file, index=False, engine='openpyxl')
-            logger.info(f"✅ 成功保存为Excel格式: {output_file}")
-        
-        logger.info(f"   文件大小: {output_path.stat().st_size / (1024**2):.2f} MB")
+        logger.info(f"输出文件已改为CSV格式: {output_file}")
+    
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # 直接保存为CSV格式
+    logger.info(f"正在保存为CSV格式: {output_file}")
+    
+    try:
+        merged_df.to_csv(output_file, index=False, encoding='utf-8-sig')
+        file_size_mb = output_path.stat().st_size / (1024**2)
+        logger.info(f"✅ 成功保存为CSV格式: {output_file}")
+        logger.info(f"   文件大小: {file_size_mb:.2f} MB")
+        logger.info(f"   行数: {len(merged_df):,}")
+        logger.info(f"   列数: {len(merged_df.columns):,}")
         return True
-        
     except Exception as e:
-        logger.error(f"❌ 保存文件失败: {e}")
-        # 尝试保存为CSV
-        try:
-            csv_file = output_file.replace('.xlsx', '.csv')
-            merged_df.to_csv(csv_file, index=False, encoding='utf-8-sig')
-            logger.info(f"已保存为CSV格式: {csv_file}")
-            return True
-        except Exception as e2:
-            logger.error(f"保存CSV也失败: {e2}")
-            return False
+        logger.error(f"❌ 保存CSV文件失败: {e}")
+        return False
 
 
 def main():
     """主函数"""
     input_dir = "横向展开结果"
-    output_file = "合并后的数据.xlsx"
+    output_file = "合并后的数据.csv"  # 直接使用CSV格式
     
     # 处理重复键的方式：
     # "first" - 取第一条记录（推荐，避免笛卡尔乘积）
